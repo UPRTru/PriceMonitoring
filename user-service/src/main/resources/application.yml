@@ -1,0 +1,39 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: admin
+    hikari:
+      connection-timeout: 30000
+      validation-timeout: 5000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      minimum-idle: 1
+      maximum-pool-size: 10
+      initialization-fail-timeout: -1
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    #      ddl-auto: update
+    show-sql: true
+#    open-in-view: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    jdbc-properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        connection:
+          provider_disables_autocommit: true
+
+  sql:
+    init:
+      mode: never
+
+general:
+  service:
+    url: http://localhost:8080

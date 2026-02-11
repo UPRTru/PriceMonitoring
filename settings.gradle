@@ -1,0 +1,7 @@
+rootProject.name = 'precious-metals-tracker'
+
+include 'general-service'
+include 'user-service'
+include 'shared'
+include 'bank-agent'
+

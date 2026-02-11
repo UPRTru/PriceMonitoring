@@ -1,0 +1,43 @@
+plugins {
+    id 'org.springframework.boot' version "${springBootVersion}" apply false
+    id 'io.spring.dependency-management' version "${springDependencyManagementVersion}" apply false
+}
+
+allprojects {
+    group = 'com.precious'
+    version = '1.0.0'
+}
+subprojects {
+    // Только подпроекты могут иметь Java-настройки
+    if (plugins.hasPlugin('java')) {
+        java.sourceCompatibility = JavaVersion.VERSION_17
+    }
+}
+configure(subprojects.findAll { it.name != 'shared' }) {
+    apply plugin: 'java'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter'
+        implementation 'org.springframework.boot:spring-boot-starter-validation'
+        implementation 'org.springframework.kafka:spring-kafka'
+        implementation 'com.fasterxml.jackson.core:jackson-databind'
+    }
+}
+
+project(':shared') {
+    apply plugin: 'java'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation 'com.fasterxml.jackson.core:jackson-annotations'
+    }
+}

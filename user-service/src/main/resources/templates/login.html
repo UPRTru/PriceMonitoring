@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-section h2 {
+            color: #8e44ad;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #9b59b6;
+            box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .timezone-info {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Добро пожаловать!</h1>
+    </div>
+
+    <div class="content">
+        <!-- Сообщения -->
+        <div th:if="${message}" class="message success" th:text="${message}"></div>
+        <div th:if="${error}" class="message error" th:text="${error}"></div>
+        <div th:if="${param.message}" class="message success" th:text="${param.message}"></div>
+
+        <!-- Форма входа -->
+        <div class="form-section">
+            <h2>Вход</h2>
+            <form th:action="@{/login}" method="post">
+                <div class="form-group">
+                    <label for="username">Email:</label>
+                    <input type="email" id="username" name="username" required />
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль:</label>
+                    <input type="password" id="password" name="password" required />
+                </div>
+                <button type="submit" class="submit-btn">Войти</button>
+            </form>
+        </div>
+
+        <!-- Форма регистрации -->
+        <div class="form-section">
+            <h2>Регистрация</h2>
+            <form th:action="@{/register}" method="post" th:object="${user}">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" th:field="*{email}" required />
+                    <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" style="color: red;"></span>
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль:</label>
+                    <input type="password" id="password" th:field="*{password}" required />
+                    <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" style="color: red;"></span>
+                </div>
+                <div class="form-group">
+                    <label for="timezone">Часовой пояс:</label>
+                    <select id="timezone" th:field="*{timezone}" required>
+                        <option value="">Выберите часовой пояс...</option>
+                        <!-- Европа -->
+                        <optgroup label="Европа">
+                            <option value="Europe/Moscow">Москва (МСК)</option>
+                            <option value="Europe/Kaliningrad">Калининград (КЛН)</option>
+                            <option value="Europe/Samara">Самара (САМ)</option>
+                            <option value="Europe/Yekaterinburg">Екатеринбург (ЕКБ)</option>
+                            <option value="Europe/Omsk">Омск (ОМС)</option>
+                            <option value="Europe/Krasnoyarsk">Красноярск (КРА)</option>
+                            <option value="Europe/Irkutsk">Иркутск (ИРК)</option>
+                            <option value="Europe/Yakutsk">Якутск (ЯКТ)</option>
+                            <option value="Europe/Vladivostok">Владивосток (ВЛД)</option>
+                            <option value="Europe/Magadan">Магадан (МГД)</option>
+                            <option value="Europe/Kamchatka">Камчатка (ПТК)</option>
+                            <option value="Europe/London">Лондон (GMT)</option>
+                            <option value="Europe/Paris">Париж (CET)</option>
+                            <option value="Europe/Berlin">Берлин (CET)</option>
+                            <option value="Europe/Rome">Рим (CET)</option>
+                            <option value="Europe/Madrid">Мадрид (CET)</option>
+                            <option value="Europe/Stockholm">Стокгольм (CET)</option>
+                        </optgroup>
+
+                        <!-- Америка -->
+                        <optgroup label="Северная Америка">
+                            <option value="America/New_York">Нью-Йорк (EST)</option>
+                            <option value="America/Chicago">Чикаго (CST)</option>
+                            <option value="America/Denver">Денвер (MST)</option>
+                            <option value="America/Los_Angeles">Лос-Анджелес (PST)</option>
+                            <option value="America/Anchorage">Анкоридж (AKST)</option>
+                            <option value="America/Halifax">Галифакс (AST)</option>
+                            <option value="America/Toronto">Торонто (EST)</option>
+                            <option value="America/Mexico_City">Мехико (CST)</option>
+                        </optgroup>
+
+                        <optgroup label="Южная Америка">
+                            <option value="America/Sao_Paulo">Сан-Паулу (BRT)</option>
+                            <option value="America/Argentina/Buenos_Aires">Буэнос-Айрес (ART)</option>
+                            <option value="America/Santiago">Сантьяго (CLT)</option>
+                        </optgroup>
+
+                        <!-- Азия -->
+                        <optgroup label="Азия">
+                            <option value="Asia/Tokyo">Токио (JST)</option>
+                            <option value="Asia/Shanghai">Шанхай (CST)</option>
+                            <option value="Asia/Hong_Kong">Гонконг (HKT)</option>
+                            <option value="Asia/Singapore">Сингапур (SGT)</option>
+                            <option value="Asia/Bangkok">Бангкок (ICT)</option>
+                            <option value="Asia/Dubai">Дубай (GST)</option>
+                            <option value="Asia/Kolkata">Дели (IST)</option>
+                            <option value="Asia/Tehran">Тегеран (IRST)</option>
+                        </optgroup>
+
+                        <!-- Австралия и Океания -->
+                        <optgroup label="Австралия и Океания">
+                            <option value="Australia/Sydney">Сидней (AEST)</option>
+                            <option value="Australia/Melbourne">Мельбурн (AEST)</option>
+                            <option value="Australia/Perth">Перт (AWST)</option>
+                            <option value="Pacific/Auckland">Окленд (NZST)</option>
+                        </optgroup>
+
+                        <!-- UTC -->
+                        <optgroup label="UTC">
+                            <option value="UTC">UTC (всемирное координированное время)</option>
+                        </optgroup>
+                    </select>
+                    <span th:if="${#fields.hasErrors('timezone')}" th:errors="*{timezone}" style="color: red;"></span>
+                    <div class="timezone-info" id="timezoneInfo"></div>
+                </div>
+                <button type="submit" class="submit-btn">Зарегистрироваться</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Автоматическое определение часового пояса пользователя
+    document.addEventListener('DOMContentLoaded', function() {
+        const timezoneSelect = document.getElementById('timezone');
+        const timezoneInfo = document.getElementById('timezoneInfo');
+
+        // Получаем часовой пояс из браузера
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        // Устанавливаем значение в селект
+        if (timezoneSelect) {
+            // Проверяем, есть ли такой часовой пояс в списке
+            const optionExists = Array.from(timezoneSelect.options).some(option => option.value === userTimezone);
+
+            if (optionExists) {
+                timezoneSelect.value = userTimezone;
+            } else {
+                // Если нет, устанавливаем значение по умолчанию
+                timezoneSelect.value = 'UTC';
+            }
+
+            // Показываем информацию о выбранном часовом поясе
+            updateTimezoneInfo(timezoneSelect.value);
+
+            // Обновляем информацию при изменении выбора
+            timezoneSelect.addEventListener('change', function() {
+                updateTimezoneInfo(this.value);
+            });
+        }
+
+        // Функция для отображения информации о часовом поясе
+        function updateTimezoneInfo(timezone) {
+            if (!timezoneInfo) return;
+
+            if (timezone === '') {
+                timezoneInfo.textContent = '';
+                return;
+            }
+
+            // Получаем текущее время в выбранном часовом поясе
+            const now = new Date();
+            const formatter = new Intl.DateTimeFormat('ru-RU', {
+                timeZone: timezone,
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZoneName: 'short'
+            });
+
+            const formattedTime = formatter.format(now);
+            timezoneInfo.textContent = `Текущее время: ${formattedTime}`;
+        }
+    });
+</script>
+</body>
+</html>

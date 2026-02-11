@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Precious Metals & Currency Tracker</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}" />
+</head>
+<body>
+<header>
+    <h1>🔍 Precious Metals & Currency Tracker</h1>
+    <p>Агрегированный дашборд — данные в реальном времени</p>
+</header>
+
+<main>
+    <div class="container">
+        <div class="module" id="bank-module">
+            <h2>🏦 Bank Agent</h2>
+            <p>Статус: <span id="bank-status">Проверка...</span></p>
+            <div id="bank-data" class="data-box" style="display: none;"></div>
+        </div>
+
+        <div class="module" id="user-module">
+            <h2>👥 User Service</h2>
+            <p>Статус: <span id="user-status">Проверка...</span></p>
+            <div id="user-data" class="data-box" style="display: none;"></div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>General Service &copy; 2025</p>
+</footer>
+
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

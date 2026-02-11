@@ -1,0 +1,45 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: admin
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    #      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    jdbc-properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    host: smtp.yandex.ru
+    port: 465
+    username: user_email
+    password: user_password #key
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            enable: true
+            trust: smtp.yandex.ru
+        debug: true
+    protocol: smtps
+    default-encoding: UTF-8
+
+bank:
+  agent:
+    url: http://localhost:8082
+user:
+  service:
+    url: http://localhost:8081

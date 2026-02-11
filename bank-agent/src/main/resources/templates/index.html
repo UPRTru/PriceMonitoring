@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор банка - Precious Metals Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        .content {
+            padding: 3rem 2rem;
+        }
+
+        .section-title {
+            text-align: center;
+            color: #8e44ad;
+            font-size: 1.8rem;
+            margin-bottom: 2.5rem;
+            font-weight: 600;
+        }
+
+        .banks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .bank-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bank-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-color: #9b59b6;
+        }
+
+        .bank-card:active {
+            transform: translateY(-2px);
+        }
+
+        .bank-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(155, 89, 182, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .bank-card:hover::before {
+            left: 100%;
+        }
+
+        .bank-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .bank-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .bank-description {
+            color: #7f8c8d;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .bank-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .bank-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(142, 68, 173, 0.4);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            background: #f8f9fa;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .footer p {
+            margin: 0.5rem 0;
+        }
+
+        .footer a {
+            color: #8e44ad;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .footer a:hover {
+            color: #6c3483;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .banks-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .content {
+                padding: 2rem;
+            }
+
+            .bank-card {
+                padding: 1.5rem;
+            }
+
+            .bank-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 2rem;
+            }
+
+            .bank-name {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Актуальные цены</h1>
+    </div>
+
+    <div class="content">
+        <h2 class="section-title">Выберите банк</h2>
+
+        <div class="banks-grid">
+            <div class="bank-card" onclick="window.location.href='/sber'">
+                <div class="bank-icon">С</div>
+                <h3 class="bank-name">Сбербанк</h3>
+                <p class="bank-description">
+                    Актуальные курсы драгоценных металлов и валют от Сбербанка России.
+                </p>
+                <a href="/sber" class="bank-btn">Перейти к Сбербанку →</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Сервис для отслеживания цен на драгоценные металлы и валюты</p>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.bank-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.borderColor = '#9b59b6';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.borderColor = 'transparent';
+        });
+    });
+</script>
+</body>
+</html>

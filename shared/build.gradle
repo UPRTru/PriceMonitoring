@@ -1,0 +1,17 @@
+plugins {
+    id 'java-library'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+dependencies {
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.17.0'
+}
+
+jar {
+    enabled = true
+}
