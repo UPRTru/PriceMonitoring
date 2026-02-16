@@ -33,18 +33,13 @@ public class UserController {
     }
 
     @GetMapping("/")
-    public String startPage(HttpSession session, Model model) {
-        return startPage(session, model, false);
-    }
-
-    @GetMapping("/?all={allModule}")
-    public String startPage(HttpSession session, Model model, @PathVariable boolean allModule) {
+    public String startPage(HttpSession session, Model model, @RequestParam(required = false, defaultValue = "false") Boolean all) {
         String email = (String) session.getAttribute("email");
         if (email != null) {
-            return "redirect:/dashboard/?all=" + allModule;
+            return "redirect:/dashboard?all=" + all;
         }
         model.addAttribute("user", new RegistrationForm("", "", ""));
-        if (allModule) {
+        if (all) {
             return "login2";
         } else {
             return "login";
@@ -52,18 +47,15 @@ public class UserController {
     }
 
     @GetMapping("/login")
-    public String showLoginForm(HttpSession session, Model model) {
-        return showLoginForm(session, model, false);
-    }
-
-    @GetMapping("/login/?all={allModule}")
-    public String showLoginForm(HttpSession session, Model model, @PathVariable boolean allModule) {
+    public String showLoginForm(HttpSession session,
+                                Model model,
+                                @RequestParam(required = false, defaultValue = "false") Boolean all) {
         String email = (String) session.getAttribute("email");
         if (email != null) {
-            return "redirect:/dashboard/?all=" + allModule;
+            return "redirect:/dashboard?all=" + all;
         }
         model.addAttribute("user", new RegistrationForm("", "", ""));
-        if (allModule) {
+        if (all) {
             return "login2";
         } else {
             return "login";
@@ -71,16 +63,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestParam String username,
-                        @RequestParam String password,
-                        HttpServletRequest request,
-                        HttpServletResponse response,
-                        Model model) {
-        return login(false, username, password, request, response, model);
-    }
-
-    @PostMapping("/login/?all={allModule}")
-    public String login(@PathVariable boolean allModule,
+    public String login(@RequestParam(required = false, defaultValue = "false") Boolean all,
                         @RequestParam String username,
                         @RequestParam String password,
                         HttpServletRequest request,
@@ -101,11 +84,11 @@ public class UserController {
                 securityContextRepository.saveContext(securityContext, request, response);
 
                 request.getSession().setAttribute("email", username);
-                return "redirect:/dashboard/?all=" + allModule;
+                return "redirect:/dashboard?all=" + all;
             } else {
                 model.addAttribute("error", "Неверный email или пароль");
                 model.addAttribute("user", new RegistrationForm("", "", ""));
-                if (allModule) {
+                if (all) {
                     return "login2";
                 } else {
                     return "login";
@@ -114,7 +97,7 @@ public class UserController {
         } catch (Exception e) {
             model.addAttribute("error", "Ошибка при входе: " + e.getMessage());
             model.addAttribute("user", new RegistrationForm("", "", ""));
-            if (allModule) {
+            if (all) {
                 return "login2";
             } else {
                 return "login";
@@ -123,14 +106,9 @@ public class UserController {
     }
 
     @GetMapping("/register")
-    public String showRegistrationForm(Model model) {
-        return showRegistrationForm(model, false);
-    }
-
-    @GetMapping("/register/?all={allModule}")
-    public String showRegistrationForm(Model model, @PathVariable boolean allModule) {
+    public String showRegistrationForm(Model model, @RequestParam(required = false, defaultValue = "false") Boolean all) {
         model.addAttribute("user", new RegistrationForm("", "", ""));
-        if (allModule) {
+        if (all) {
             return "login2";
         } else {
             return "login";
@@ -138,16 +116,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public String registerUser(@Valid RegistrationForm form,
-                               BindingResult result,
-                               HttpServletRequest request,
-                               HttpServletResponse response,
-                               Model model) {
-        return registerUser(false, form, result, request, response, model);
-    }
-
-    @PostMapping("/register/?all={allModule}")
-    public String registerUser(@PathVariable boolean allModule,
+    public String registerUser(@RequestParam(required = false, defaultValue = "false") Boolean all,
                                @Valid RegistrationForm form,
                                BindingResult result,
                                HttpServletRequest request,
@@ -156,7 +125,7 @@ public class UserController {
         if (result.hasErrors()) {
             model.addAttribute("error", "Ошибка валидации");
             model.addAttribute("user", form);
-            if (allModule) {
+            if (all) {
                 return "login2";
             } else {
                 return "login";
@@ -177,11 +146,11 @@ public class UserController {
 
             request.getSession().setAttribute("email", form.email());
             model.addAttribute("message", "Регистрация успешна! Добро пожаловать!");
-            return "redirect:/dashboard/?all=" + allModule;
+            return "redirect:/dashboard?all=" + all;
         } catch (Exception e) {
             model.addAttribute("error", "Ошибка: " + e.getMessage());
             model.addAttribute("user", form);
-            if (allModule) {
+            if (all) {
                 return "login2";
             } else {
                 return "login";
@@ -190,17 +159,14 @@ public class UserController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(Authentication authentication, Model model) {
-        return dashboard(authentication, model, false);
-    }
-
-    @GetMapping("/dashboard/?all={allModule}")
-    public String dashboard(Authentication authentication, Model model, @PathVariable boolean allModule) {
+    public String dashboard(Authentication authentication,
+                            Model model,
+                            @RequestParam(required = false, defaultValue = "false") Boolean all) {
         if (authentication == null) return "redirect:/login";
         String email = authentication.getName();
         model.addAttribute("email", email);
         model.addAttribute("prices", userService.getScheduledPrice(email));
-        if (allModule) {
+        if (all) {
             return "dashboard2";
         } else {
             return "dashboard";
@@ -284,5 +250,6 @@ public class UserController {
             String currentPrice,
             BigDecimal price,
             String email
-    ) {}
+    ) {
+    }
 }

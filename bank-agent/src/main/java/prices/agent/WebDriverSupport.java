@@ -15,7 +15,8 @@ public class WebDriverSupport {
 
     public WebDriverSupport() {
         this.options = new ChromeOptions();
-        System.setProperty("webdriver.chrome.driver", "C:/chrome-win64/chromedriver.exe");
+//        System.setProperty("webdriver.chrome.driver", "C:/chrome-win64/chromedriver.exe");
+        this.options.setBinary("/usr/bin/google-chrome");
         this.options.addArguments("--headless=new");
         this.options.addArguments("--no-sandbox");
         this.options.addArguments("--disable-dev-shm-usage");
@@ -23,7 +24,7 @@ public class WebDriverSupport {
         this.options.addArguments("--window-size=1920,1080");
         this.options.addArguments("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
         this.options.setExperimentalOption("useAutomationExtension", false);
-        this.options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
+        this.options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation", "disable-extensions"});
     }
 
     public WebDriverWait getWebDriver() {

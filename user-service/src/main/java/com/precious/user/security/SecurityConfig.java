@@ -22,7 +22,7 @@ public class SecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/register", "/dashboard", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/", "/health", "/login", "/register", "/dashboard", "/css/**", "/js/**", "/images/**").permitAll()
                         .anyRequest().hasRole("USER")  // Требуем роль ROLE_USER
                 )
 

@@ -23,8 +23,8 @@ public class ScheduledPriceUpdater {
     private final Agent currencyAgent;
     private final PriceService priceService;
 
-    public ScheduledPriceUpdater(@Qualifier(CurrencySberAgent.AGENT_NAME) Agent metalAgent,
-                                 @Qualifier(MetalSberAgent.AGENT_NAME) Agent currencyAgent,
+    public ScheduledPriceUpdater(@Qualifier(MetalSberAgent.AGENT_NAME) Agent metalAgent,
+                                 @Qualifier(CurrencySberAgent.AGENT_NAME) Agent currencyAgent,
                                  PriceService priceService) {
         this.metalAgent = metalAgent;
         this.currencyAgent = currencyAgent;
@@ -34,7 +34,6 @@ public class ScheduledPriceUpdater {
     //    @Scheduled(fixedRate = 300_000) // 5 минут
     @Scheduled(fixedRate = 900_000) // 15 минут
     public void updatePrices() {
-        log.info("Fetching and updating metal prices...");
         try {
             int randomNumber = random.nextInt(120001);
             Thread.sleep(randomNumber);
@@ -42,7 +41,7 @@ public class ScheduledPriceUpdater {
             randomNumber = random.nextInt(140001) + 80000;
             Thread.sleep(randomNumber);
             priceService.updatePrices(TypePrice.CURRENCY, currencyAgent);
-            log.info("Metal prices updated successfully.");
+            log.info("Prices updated successfully.");
         } catch (Exception e) {
             log.error("Error during price update", e);
         }

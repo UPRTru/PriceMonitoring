@@ -8,8 +8,8 @@ spring:
     password: admin
   jpa:
     hibernate:
-      ddl-auto: create-drop
-    #      ddl-auto: validate
+#      ddl-auto: create-drop
+          ddl-auto: validate
     show-sql: false
     open-in-view: false
   flyway:
@@ -40,6 +40,8 @@ spring:
 bank:
   agent:
     url: http://localhost:8082
+    out-url: http://localhost:8082
 user:
   service:
     url: http://localhost:8081
+    out-url: http://localhost:8081

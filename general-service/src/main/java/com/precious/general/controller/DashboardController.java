@@ -17,15 +17,21 @@ public class DashboardController {
     @Value("${user.service.url}")
     private String userServiceUrl;
 
+    @Value("${bank.agent.out-url}")
+    private String bankAgentOutUrl;
+
+    @Value("${user.service.out-url}")
+    private String userServiceOutUrl;
+
     @GetMapping("/")
     public String dashboard() {
         Map<String, Boolean> status = moduleStatus();
         if (status.get("bankAgent") && status.get("userService")) {
-            return "redirect:" + userServiceUrl + "/?all=true";
+            return "redirect:" + userServiceOutUrl + "?all=true";
         } else if (status.get("bankAgent")) {
-            return "redirect:" + bankAgentUrl;
+            return "redirect:" + bankAgentOutUrl;
         } else if (status.get("userService")) {
-            return "redirect:" + userServiceUrl + "/?all=false";
+            return "redirect:" + userServiceOutUrl;
         }
         return "unavailable";
     }
@@ -33,7 +39,7 @@ public class DashboardController {
     @GetMapping("/api/bank_module")
     public String getBankModule() {
         if (isReachable(bankAgentUrl + "/health")) {
-            return "redirect:" + bankAgentUrl;
+            return "redirect:" + bankAgentOutUrl;
         } else {
             return "unavailable";
         }
