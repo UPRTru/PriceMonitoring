@@ -14,7 +14,9 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/sber")
-public class SberPriceController {
+public final class SberPriceController {
+
+    //todo исключения
 
     private final MetalPriceRepository metalRepository;
     private final CurrencyPriceRepository currencyRepository;

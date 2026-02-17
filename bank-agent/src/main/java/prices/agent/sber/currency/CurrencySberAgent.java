@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @Component(CurrencySberAgent.AGENT_NAME)
-public class CurrencySberAgent implements Agent {
+public final class CurrencySberAgent implements Agent {
 
     public static final String AGENT_NAME = "sber agent current";
     private static final int MAX_COUNT_CURRENCY = 5;

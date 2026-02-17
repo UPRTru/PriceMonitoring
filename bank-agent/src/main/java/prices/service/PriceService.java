@@ -15,7 +15,7 @@ import prices.repository.MetalPriceRepository;
 import java.util.Map;
 
 @Service
-public class PriceService<T extends AgentConfig> {
+public class PriceService {
 
     private final MetalPriceRepository metalPriceRepository;
     private final CurrencyPriceRepository currencyPriceRepository;

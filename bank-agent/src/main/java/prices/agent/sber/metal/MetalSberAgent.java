@@ -18,7 +18,7 @@ import java.time.Instant;
 import java.util.HashMap;
 
 @Component(MetalSberAgent.AGENT_NAME)
-public class MetalSberAgent implements Agent {
+public final class MetalSberAgent implements Agent {
 
     public static final String AGENT_NAME = "sber agent metal";
 

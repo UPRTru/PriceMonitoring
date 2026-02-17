@@ -11,11 +11,10 @@ public class WebDriverSupport {
 
     private final ChromeOptions options;
     private WebDriver driver;
-    private WebDriverWait webDriver;
+    private WebDriverWait webDriverWait;
 
     public WebDriverSupport() {
         this.options = new ChromeOptions();
-//        System.setProperty("webdriver.chrome.driver", "C:/chrome-win64/chromedriver.exe");
         this.options.setBinary("/usr/bin/google-chrome");
         this.options.addArguments("--headless=new");
         this.options.addArguments("--no-sandbox");
@@ -27,21 +26,37 @@ public class WebDriverSupport {
         this.options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation", "disable-extensions"});
     }
 
-    public WebDriverWait getWebDriver() {
-        return webDriver;
+    public void createDriver() {
+        if (driver == null) {
+            driver = new ChromeDriver(options);
+            driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+        }
     }
 
-    public void createDriver() {
-        driver = new ChromeDriver(options);
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+    public WebDriverWait getWebDriver() {
+        if (webDriverWait == null && driver != null) {
+            webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        }
+        return webDriverWait;
+    }
+
+    public WebDriver getDriver() {
+        return driver;
     }
 
     public void goToPage(String url) {
+        if (driver == null) {
+            createDriver();
+        }
         driver.get(url);
-        webDriver = new WebDriverWait(driver, Duration.ofSeconds(10));
+        webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
     public void closeDriver() {
-        driver.quit();
+        if (driver != null) {
+            driver.quit();
+            driver = null;
+            webDriverWait = null;
+        }
     }
 }

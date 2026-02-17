@@ -77,13 +77,28 @@ public class MetalPrice implements Priced {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof MetalPrice that)) return false;
-        return Objects.equals(name, that.name) &&
+        return Objects.equals(id, that.id) &&
+                Objects.equals(name, that.name) &&
                 Objects.equals(buyPrice, that.buyPrice) &&
-                Objects.equals(sellPrice, that.sellPrice);
+                Objects.equals(sellPrice, that.sellPrice) &&
+                Objects.equals(timestamp, that.timestamp) &&
+                Objects.equals(bank, that.bank);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, buyPrice, sellPrice);
+        return Objects.hash(id, name, buyPrice, sellPrice, timestamp, bank);
+    }
+
+    @Override
+    public String toString() {
+        return "MetalPrice{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", buyPrice=" + buyPrice +
+                ", sellPrice=" + sellPrice +
+                ", timestamp=" + timestamp +
+                ", bank='" + bank + '\'' +
+                '}';
     }
 }

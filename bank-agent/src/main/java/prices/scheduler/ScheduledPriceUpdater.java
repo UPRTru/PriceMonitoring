@@ -14,9 +14,13 @@ import prices.service.PriceService;
 import java.util.Random;
 
 @Component
-public class ScheduledPriceUpdater {
+public final class ScheduledPriceUpdater {
 
     private static final Logger log = LoggerFactory.getLogger(ScheduledPriceUpdater.class);
+    private static final int METAL_DELAY_MAX = 120001;
+    private static final int CURRENCY_DELAY_MIN = 80000;
+    private static final int CURRENCY_DELAY_MAX = 220001;
+    private static final long UPDATE_INTERVAL_MS = 900_000;
 
     private final Random random = new Random();
     private final Agent metalAgent;
@@ -31,17 +35,19 @@ public class ScheduledPriceUpdater {
         this.priceService = priceService;
     }
 
-    //    @Scheduled(fixedRate = 300_000) // 5 минут
-    @Scheduled(fixedRate = 900_000) // 15 минут
+    @Scheduled(fixedRate = UPDATE_INTERVAL_MS)
     public void updatePrices() {
         try {
-            int randomNumber = random.nextInt(120001);
-            Thread.sleep(randomNumber);
+            Thread.sleep(random.nextInt(METAL_DELAY_MAX));
             priceService.updatePrices(TypePrice.METAL, metalAgent);
-            randomNumber = random.nextInt(140001) + 80000;
-            Thread.sleep(randomNumber);
+
+            Thread.sleep(CURRENCY_DELAY_MIN + random.nextInt(CURRENCY_DELAY_MAX - CURRENCY_DELAY_MIN));
             priceService.updatePrices(TypePrice.CURRENCY, currencyAgent);
+
             log.info("Prices updated successfully.");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Price update interrupted", e);
         } catch (Exception e) {
             log.error("Error during price update", e);
         }
