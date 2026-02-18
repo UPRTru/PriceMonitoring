@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 import java.time.Duration;
 
 @Service
-public class ServiceCheckPrice {
+public final class ServiceCheckPrice {
 
     private final BankAgentClient bankAgentClient;
     private final EmailService emailService;

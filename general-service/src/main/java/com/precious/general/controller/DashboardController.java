@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Controller
-public class DashboardController {
+public final class DashboardController {
 
     @Value("${bank.agent.url}")
     private String bankAgentUrl;

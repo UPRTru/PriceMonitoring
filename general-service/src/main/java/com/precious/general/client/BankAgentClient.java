@@ -11,15 +11,21 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @Component
-public class BankAgentClient {
+public final class BankAgentClient {
 
     @Value("${bank.agent.url}")
     private String bankAgentUrl;
 
     private final WebClient webClient;
 
-    public BankAgentClient() {
-        this.webClient = WebClient.create(bankAgentUrl);
+    public BankAgentClient(@Value("${bank.agent.url}") String bankAgentUrl,
+                           WebClient.Builder webClientBuilder) {
+        if (bankAgentUrl == null || bankAgentUrl.isBlank()) {
+            throw new IllegalArgumentException("bank.agent.url cannot be empty");
+        }
+        this.webClient = webClientBuilder
+                .baseUrl(bankAgentUrl)
+                .build();
     }
 
     public String getStatus() {

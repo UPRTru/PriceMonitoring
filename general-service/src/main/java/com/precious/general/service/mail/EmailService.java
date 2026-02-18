@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 
 @Service
-public class EmailService {
+public final class EmailService {
 
     @Autowired
     private JavaMailSender mailSender;

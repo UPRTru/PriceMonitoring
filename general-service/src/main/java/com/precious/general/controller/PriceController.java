@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Controller
-public class PriceController {
+public final class PriceController {
 
     private final ServiceCheckPrice serviceCheckPrice;
 
