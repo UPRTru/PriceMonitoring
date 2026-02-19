@@ -1,9 +1,6 @@
 package com.precious.shared.enums;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public enum Currency {
@@ -47,20 +44,32 @@ public enum Currency {
     }
 
     private static final Map<String, Currency> BY_NAME = Arrays.stream(values())
-            .collect(Collectors.toUnmodifiableMap(Currency::getDisplayName, m -> m));
+            .collect(Collectors.toUnmodifiableMap(Currency::getDisplayName, c -> c));
 
-    public static java.util.Optional<Currency> fromDisplayName(String name) {
-        return java.util.Optional.ofNullable(BY_NAME.get(name));
+    public static Optional<Currency> fromDisplayName(String name) {
+        if (name == null || name.isBlank()) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(BY_NAME.get(name));
     }
 
     public static List<Currency> getCurrencyByBanks(Banks bank) {
-        List<Currency> result = new ArrayList<>();
-        for (Currency c : values()) {
-            if (c.getBanks().contains(bank)) {
-                result.add(c);
-            }
+        if (bank == null) {
+            return List.of();
         }
-        return result;
+        return Arrays.stream(values())
+                .filter(c -> c.getBanks().contains(bank))
+                .toList();
     }
 
+    public static Optional<Currency> fromCode(String code) {
+        if (code == null || code.isBlank()) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(Currency.valueOf(code.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
+    }
 }

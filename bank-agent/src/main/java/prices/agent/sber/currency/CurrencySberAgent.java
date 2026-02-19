@@ -58,7 +58,7 @@ public final class CurrencySberAgent implements Agent {
             currencies.forEach(currency -> {
                 result.put(
                         currency.name(),
-                        new Price(Banks.SBER,
+                        Price.of(Banks.SBER,
                                 currency.getDisplayName(),
                                 getCurrencyPrice(currency, CurrentPrice.BUY),
                                 getCurrencyPrice(currency, CurrentPrice.SELL),

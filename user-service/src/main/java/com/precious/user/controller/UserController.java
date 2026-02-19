@@ -132,7 +132,7 @@ public class UserController {
             }
         }
         try {
-            userService.register(new AuthDto(form.email(), form.password()), form.timezone());
+            userService.register(AuthDto.of(form.email(), form.password()), form.timezone());
 
             UserDetails userDetails = userService.getByEmail(form.email());
             Authentication authentication = org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -189,10 +189,10 @@ public class UserController {
         }
 
         try {
-            CheckPrice checkPrice = new CheckPrice(
-                    com.precious.shared.enums.Banks.getBanks(request.bank()),
-                    com.precious.shared.enums.TypePrice.getTypePrice(request.typePrice()),
-                    com.precious.shared.enums.CurrentPrice.getCurrentPrice(request.currentPrice()),
+            CheckPrice checkPrice = CheckPrice.of(
+                    com.precious.shared.enums.Banks.findByName(request.bank()).get(),
+                    com.precious.shared.enums.TypePrice.fromValue(request.typePrice()).get(),
+                    com.precious.shared.enums.CurrentPrice.fromValue(request.currentPrice()).get(),
                     request.name(),
                     request.price()
             );

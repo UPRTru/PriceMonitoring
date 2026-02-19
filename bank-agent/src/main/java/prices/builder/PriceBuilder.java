@@ -11,7 +11,7 @@ import javax.annotation.Nullable;
 public class PriceBuilder {
 
     public static Price buildPrice(@NotNull Priced priced) {
-        return new Price(priced.getBank(),
+        return Price.of(priced.getBank(),
                 priced.getName(),
                 priced.getBuyPrice(),
                 priced.getSellPrice(),

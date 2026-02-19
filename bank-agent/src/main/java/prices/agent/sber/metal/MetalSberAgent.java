@@ -49,7 +49,7 @@ public final class MetalSberAgent implements Agent {
     }
 
     private Price getMetalPrices(Metal metal) {
-        return new Price(Banks.SBER,
+        return Price.of(Banks.SBER,
                 metal.getDisplayName(),
                 getJsonMetalPrice(metal, CurrentPrice.BUY),
                 getJsonMetalPrice(metal, CurrentPrice.SELL),

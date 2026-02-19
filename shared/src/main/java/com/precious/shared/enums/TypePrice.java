@@ -1,6 +1,7 @@
 package com.precious.shared.enums;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public enum TypePrice {
     CURRENCY("currency"),
@@ -16,9 +17,12 @@ public enum TypePrice {
         return value;
     }
 
-    public static TypePrice getTypePrice(String value) {
-        return Arrays.stream(TypePrice.values()).filter(typePrice -> typePrice.getValue().equals(value))
-                .findFirst()
-                .orElse(null);
+    public static Optional<TypePrice> fromValue(String value) {
+        if (value == null || value.isBlank()) {
+            return Optional.empty();
+        }
+        return Arrays.stream(TypePrice.values())
+                .filter(tp -> tp.getValue().equalsIgnoreCase(value))
+                .findFirst();
     }
 }

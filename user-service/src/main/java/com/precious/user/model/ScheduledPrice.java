@@ -53,7 +53,7 @@ public class ScheduledPrice {
     }
 
     public CheckPrice getCheckPrice() {
-        return new CheckPrice(Banks.valueOf(bank), TypePrice.valueOf(typePrice), CurrentPrice.valueOf(currentPrice), name, price);
+        return CheckPrice.of(Banks.valueOf(bank), TypePrice.valueOf(typePrice), CurrentPrice.valueOf(currentPrice), name, price);
     }
 
     @Override
