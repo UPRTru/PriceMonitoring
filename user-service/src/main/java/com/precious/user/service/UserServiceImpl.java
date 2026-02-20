@@ -2,8 +2,8 @@ package com.precious.user.service;
 
 import com.precious.shared.dto.AuthDto;
 import com.precious.shared.dto.CheckPrice;
-import com.precious.user.exception.BadRequestException;
-import com.precious.user.exception.NotFoundException;
+import com.precious.shared.exception.BadRequestException;
+import com.precious.shared.exception.NotFoundException;
 import com.precious.user.model.ScheduledPrice;
 import com.precious.user.model.User;
 import com.precious.user.repository.ScheduledPriceRepository;

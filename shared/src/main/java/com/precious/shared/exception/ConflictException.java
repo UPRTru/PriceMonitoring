@@ -1,4 +1,4 @@
-package com.precious.user.exception;
+package com.precious.shared.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
