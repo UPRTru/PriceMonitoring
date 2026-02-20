@@ -22,12 +22,11 @@ public class SecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/health", "/login", "/register", "/dashboard", "/css/**", "/js/**", "/images/**").permitAll()
-                        .anyRequest().hasRole("USER")  // Требуем роль ROLE_USER
+                        .requestMatchers("/", "/health", "/login", "/register",
+                                "/dashboard", "/css/**", "/js/**", "/images/**").permitAll()
+                        .anyRequest().hasRole("USER")
                 )
-
                 .formLogin(AbstractHttpConfigurer::disable)
-
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?message=Вы успешно вышли из системы")
@@ -35,7 +34,6 @@ public class SecurityConfig {
                         .clearAuthentication(true)
                         .permitAll()
                 );
-
         return http.build();
     }
 }

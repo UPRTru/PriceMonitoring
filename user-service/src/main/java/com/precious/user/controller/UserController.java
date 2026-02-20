@@ -10,9 +10,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
@@ -23,27 +21,26 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 
 @Controller
-public class UserController {
+public final class UserController {
 
     private final UserService userService;
-    private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+    private final SecurityContextRepository securityContextRepository;
 
     public UserController(UserService userService) {
         this.userService = userService;
+        this.securityContextRepository = new HttpSessionSecurityContextRepository();
     }
 
     @GetMapping("/")
-    public String startPage(HttpSession session, Model model, @RequestParam(required = false, defaultValue = "false") Boolean all) {
+    public String startPage(HttpSession session,
+                            Model model,
+                            @RequestParam(required = false, defaultValue = "false") Boolean all) {
         String email = (String) session.getAttribute("email");
         if (email != null) {
             return "redirect:/dashboard?all=" + all;
         }
         model.addAttribute("user", new RegistrationForm("", "", ""));
-        if (all) {
-            return "login2";
-        } else {
-            return "login";
-        }
+        return determineView(all);
     }
 
     @GetMapping("/login")
@@ -55,64 +52,39 @@ public class UserController {
             return "redirect:/dashboard?all=" + all;
         }
         model.addAttribute("user", new RegistrationForm("", "", ""));
-        if (all) {
-            return "login2";
-        } else {
-            return "login";
-        }
+        return determineView(all);
     }
 
     @PostMapping("/login")
     public String login(@RequestParam(required = false, defaultValue = "false") Boolean all,
-                        @RequestParam String username,
+                        @RequestParam String email,
                         @RequestParam String password,
                         HttpServletRequest request,
                         HttpServletResponse response,
                         Model model) {
         try {
-            boolean isAuthenticated = userService.authenticate(username, password);
+            boolean isAuthenticated = userService.authenticate(email, password);
 
             if (isAuthenticated) {
-                UserDetails userDetails = userService.getByEmail(username);
-                Authentication authentication = org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-                        .authenticated(userDetails, null, userDetails.getAuthorities());
-
-                SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-                securityContext.setAuthentication(authentication);
-                SecurityContextHolder.setContext(securityContext);
-
-                securityContextRepository.saveContext(securityContext, request, response);
-
-                request.getSession().setAttribute("email", username);
+                setupSecurityContext(email, request, response);
+                request.getSession().setAttribute("email", email);
                 return "redirect:/dashboard?all=" + all;
             } else {
                 model.addAttribute("error", "Неверный email или пароль");
                 model.addAttribute("user", new RegistrationForm("", "", ""));
-                if (all) {
-                    return "login2";
-                } else {
-                    return "login";
-                }
+                return determineView(all);
             }
         } catch (Exception e) {
             model.addAttribute("error", "Ошибка при входе: " + e.getMessage());
             model.addAttribute("user", new RegistrationForm("", "", ""));
-            if (all) {
-                return "login2";
-            } else {
-                return "login";
-            }
+            return determineView(all);
         }
     }
 
     @GetMapping("/register")
     public String showRegistrationForm(Model model, @RequestParam(required = false, defaultValue = "false") Boolean all) {
         model.addAttribute("user", new RegistrationForm("", "", ""));
-        if (all) {
-            return "login2";
-        } else {
-            return "login";
-        }
+        return determineView(all);
     }
 
     @PostMapping("/register")
@@ -125,36 +97,18 @@ public class UserController {
         if (result.hasErrors()) {
             model.addAttribute("error", "Ошибка валидации");
             model.addAttribute("user", form);
-            if (all) {
-                return "login2";
-            } else {
-                return "login";
-            }
+            return determineView(all);
         }
         try {
             userService.register(AuthDto.of(form.email(), form.password()), form.timezone());
-
-            UserDetails userDetails = userService.getByEmail(form.email());
-            Authentication authentication = org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-                    .authenticated(userDetails, null, userDetails.getAuthorities());
-
-            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-            securityContext.setAuthentication(authentication);
-            SecurityContextHolder.setContext(securityContext);
-
-            securityContextRepository.saveContext(securityContext, request, response);
-
+            setupSecurityContext(form.email(), request, response);
             request.getSession().setAttribute("email", form.email());
             model.addAttribute("message", "Регистрация успешна! Добро пожаловать!");
             return "redirect:/dashboard?all=" + all;
         } catch (Exception e) {
             model.addAttribute("error", "Ошибка: " + e.getMessage());
             model.addAttribute("user", form);
-            if (all) {
-                return "login2";
-            } else {
-                return "login";
-            }
+            return determineView(all);
         }
     }
 
@@ -162,15 +116,13 @@ public class UserController {
     public String dashboard(Authentication authentication,
                             Model model,
                             @RequestParam(required = false, defaultValue = "false") Boolean all) {
-        if (authentication == null) return "redirect:/login";
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
         String email = authentication.getName();
         model.addAttribute("email", email);
         model.addAttribute("prices", userService.getScheduledPrice(email));
-        if (all) {
-            return "dashboard2";
-        } else {
-            return "dashboard";
-        }
+        return determineView(all);
     }
 
     @GetMapping("/logout")
@@ -236,6 +188,20 @@ public class UserController {
         } catch (Exception e) {
             return "error: " + e.getMessage();
         }
+    }
+
+    private String determineView(Boolean all) {
+        return Boolean.TRUE.equals(all) ? "login2" : "login";
+    }
+
+    private void setupSecurityContext(String email, HttpServletRequest request, HttpServletResponse response) {
+        var userDetails = userService.getByEmail(email);
+        var authentication = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+        var securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        securityContextRepository.saveContext(securityContext, request, response);
     }
 
     public record RegistrationForm(@NotBlank @Email String email,

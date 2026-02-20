@@ -36,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final ScheduledPriceRepository scheduledPriceRepository;
     private final PasswordEncoder passwordEncoder;
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}");
 
     @Retryable(
             value = {DataAccessException.class},
@@ -64,11 +65,8 @@ public class UserServiceImpl implements UserService {
         try {
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new NotFoundException("Пользователь с email: " + email + " не найден."));
-
-            // Добавляем роль пользователю
             List<GrantedAuthority> authorities = new ArrayList<>();
             authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-
             return new org.springframework.security.core.userdetails.User(
                     user.getEmail(),
                     user.getPassword(),
@@ -90,18 +88,24 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByEmail(email);
     }
 
+    @Retryable(
+            value = {DataAccessException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
+    @Transactional(readOnly = true)
     @Override
     public void addScheduledPrice(String email, CheckPrice checkPrice) {
         User user = findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
 
-        ScheduledPrice scheduledPrice = new ScheduledPrice();
-        scheduledPrice.setUser(user);
-        scheduledPrice.setBank(checkPrice.bank().name());
-        scheduledPrice.setTypePrice(checkPrice.typePrice().name());
-        scheduledPrice.setCurrentPrice(checkPrice.currentPrice().name());
-        scheduledPrice.setName(checkPrice.name());
-        scheduledPrice.setPrice(checkPrice.price());
+        ScheduledPrice scheduledPrice = new ScheduledPrice(
+                user,
+                checkPrice.bank().name(),
+                checkPrice.typePrice().name(),
+                checkPrice.currentPrice().name(),
+                checkPrice.name(),
+                checkPrice.price());
         scheduledPriceRepository.save(scheduledPrice);
     }
 
@@ -133,8 +137,7 @@ public class UserServiceImpl implements UserService {
             backoff = @Backoff(delay = 2000, multiplier = 1.5)
     )
     @Transactional(readOnly = true)
-    public StringBuilder getAllScheduledPrices() {
-        String email = getLoginEmail();
+    public StringBuilder getAllScheduledPrices(String email) {
         User user = findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
         List<ScheduledPrice> scheduledPrices = user.getScheduledPrices();
@@ -155,16 +158,10 @@ public class UserServiceImpl implements UserService {
     public boolean authenticate(String email, String password) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
-
         return passwordEncoder.matches(password, user.getPassword());
     }
 
-    @Retryable(
-            value = {DataAccessException.class},
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 2000)
-    )
-    @Transactional(readOnly = true)
+    @Transactional()
     @Override
     public void deleteScheduledPrice(Long id, String email) {
         ScheduledPrice price = scheduledPriceRepository.findById(id)
@@ -173,48 +170,31 @@ public class UserServiceImpl implements UserService {
         if (!price.getUser().getEmail().equals(email)) {
             throw new SecurityException("Unauthorized access");
         }
-
         scheduledPriceRepository.delete(price);
     }
 
-    @Retryable(
-            value = {DataAccessException.class},
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 2000)
-    )
-    @Transactional(readOnly = true)
+    @Transactional()
     @Override
     public void deleteUser(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
-
         scheduledPriceRepository.deleteByUser(user);
         userRepository.delete(user);
     }
 
-    public String getUserZoneDateTime() {
-        String email = getLoginEmail();
+    public String getUserZoneDateTime(String email) {
         User user = findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
         return user.getTimezone();
     }
 
     private void validEmail(String email) {
-        try {
-            Pattern pattern = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}");
-            Matcher mat = pattern.matcher(email);
-            if (email.isEmpty() || !mat.matches()) {
-                throw new BadRequestException("Некорректная почта");
-            }
-        } catch (Exception e) {
-            log.info(e.getMessage());
-            throw e;
+        if (email == null || email.isBlank()) {
+            throw new BadRequestException("Email cannot be empty");
         }
-    }
-
-    private String getLoginEmail() {
-        // В сессионной аутентификации можно получить через SecurityContext
-        // Сейчас оставим заглушку
-        return "email";
+        Matcher matcher = EMAIL_PATTERN.matcher(email);
+        if (!matcher.matches()) {
+            throw new BadRequestException("Некорректная почта");
+        }
     }
 }

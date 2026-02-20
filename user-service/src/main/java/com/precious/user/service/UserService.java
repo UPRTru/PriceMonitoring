@@ -27,9 +27,9 @@ public interface UserService {
 
     List<User> getAllUsers();
 
-    StringBuilder getAllScheduledPrices();
+    StringBuilder getAllScheduledPrices(String email);
 
-    String getUserZoneDateTime();
+    String getUserZoneDateTime(String email);
 
     List<ScheduledPrice> getScheduledPrice(String email);
 }
