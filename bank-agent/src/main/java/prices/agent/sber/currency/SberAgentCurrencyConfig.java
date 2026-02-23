@@ -18,7 +18,6 @@ public enum SberAgentCurrencyConfig implements AgentConfig {
             + "//div[contains(@class, 'rates-form-new-table-row__col-wrap')]"
             + "//div[%s]"
             + "//div[contains(@class, 'dk-sbol-text') and contains(text(), '₽')]"),
-
     INDEX_BUY("1"),
     INDEX_SELL("2");
 

@@ -14,15 +14,15 @@ import java.util.Optional;
 public interface CurrencyPriceRepository extends JpaRepository<CurrencyPrice, Long> {
 
     @Query("SELECT p FROM CurrencyPrice p WHERE p.name = :name ORDER BY p.timestamp DESC")
-    Optional<CurrencyPrice> findLatestByName(String name);
+    Optional<CurrencyPrice> findLatestByName(@Param("name") String name);
 
     @Query("SELECT p FROM CurrencyPrice p " +
-            "WHERE p.name = :currencyName " +
+            "WHERE p.name = :name " +
             "AND p.timestamp >= :from " +
             "AND p.timestamp < :to " +
             "ORDER BY p.timestamp ASC")
     List<CurrencyPrice> findByNameAndTimestampBetweenOrderByTimestampAsc(
-            @Param("currencyName") String name,
+            @Param("name") String name,
             @Param("from") Long from,
             @Param("to") Long to);
 

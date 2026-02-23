@@ -1,22 +1,19 @@
 package prices.controller.sber;
 
-import com.precious.shared.dto.Price;
+import shared.dto.Price;
+import shared.exception.NotFoundException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import prices.builder.PriceBuilder;
-import prices.model.CurrencyPrice;
-import prices.model.MetalPrice;
 import prices.repository.CurrencyPriceRepository;
 import prices.repository.MetalPriceRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/sber")
 public final class SberPriceController {
-
-    //todo исключения
 
     private final MetalPriceRepository metalRepository;
     private final CurrencyPriceRepository currencyRepository;
@@ -28,50 +25,60 @@ public final class SberPriceController {
     }
 
     @GetMapping("/metal/lastprice/{metalName}")
-    public Price getSberLatestMetal(@PathVariable String metalName) {
-        Optional<MetalPrice> metalPrice = metalRepository.findLatestByName(metalName);
-        if (metalPrice.isEmpty()) {
-            throw new RuntimeException();
-        }
-        return PriceBuilder.buildPrice(metalPrice.get());
+    public ResponseEntity<Price> getSberLatestMetal(@PathVariable String metalName) {
+        return metalRepository.findLatestByName(metalName)
+                .map(PriceBuilder::buildPrice)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new NotFoundException("Metal not found: " + metalName));
     }
 
     @GetMapping("/metal/all")
-    public List<Price> getSberAllMetal() {
-        return metalRepository.findLatestUniqueByName()
-                .stream().map(PriceBuilder::buildPrice).collect(Collectors.toList());
+    public ResponseEntity<List<Price>> getSberAllMetal() {
+        List<Price> prices = metalRepository.findLatestUniqueByName()
+                .stream()
+                .map(PriceBuilder::buildPrice)
+                .collect(Collectors.toUnmodifiableList());
+        return ResponseEntity.ok(prices);
     }
 
     @GetMapping("/metal/history/{metalName}")
-    public List<Price> getHistoryMetal(
+    public ResponseEntity<List<Price>> getHistoryMetal(
             @PathVariable String metalName,
             @RequestParam Long from,
             @RequestParam Long to) {
-        return metalRepository.findByNameAndTimestampBetweenOrderByTimestampAsc(metalName, from, to)
-                .stream().map(PriceBuilder::buildPrice).collect(Collectors.toList());
+        List<Price> prices = metalRepository.findByNameAndTimestampBetweenOrderByTimestampAsc(metalName, from, to)
+                .stream()
+                .map(PriceBuilder::buildPrice)
+                .collect(Collectors.toUnmodifiableList());
+        return ResponseEntity.ok(prices);
     }
 
     @GetMapping("/currency/lastprice/{currencyName}")
-    public Price getSberLatestCurrency(@PathVariable String currencyName) {
-        Optional<CurrencyPrice> currencyPrice = currencyRepository.findLatestByName(currencyName);
-        if (currencyPrice.isEmpty()) {
-            throw new RuntimeException();
-        }
-        return PriceBuilder.buildPrice(currencyPrice.get());
+    public ResponseEntity<Price> getSberLatestCurrency(@PathVariable String currencyName) {
+        return currencyRepository.findLatestByName(currencyName)
+                .map(PriceBuilder::buildPrice)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new NotFoundException("Currency not found: " + currencyName));
     }
 
     @GetMapping("/currency/all")
-    public List<Price> getSberAllCurrency() {
-        return currencyRepository.findLatestUniqueByName()
-                .stream().map(PriceBuilder::buildPrice).collect(Collectors.toList());
+    public ResponseEntity<List<Price>> getSberAllCurrency() {
+        List<Price> prices = currencyRepository.findLatestUniqueByName()
+                .stream()
+                .map(PriceBuilder::buildPrice)
+                .collect(Collectors.toUnmodifiableList());
+        return ResponseEntity.ok(prices);
     }
 
     @GetMapping("/currency/history/{currencyName}")
-    public List<Price> getHistoryCurrency(
+    public ResponseEntity<List<Price>> getHistoryCurrency(
             @PathVariable String currencyName,
             @RequestParam Long from,
             @RequestParam Long to) {
-        return currencyRepository.findByNameAndTimestampBetweenOrderByTimestampAsc(currencyName, from, to)
-                .stream().map(PriceBuilder::buildPrice).collect(Collectors.toList());
+        List<Price> prices = currencyRepository.findByNameAndTimestampBetweenOrderByTimestampAsc(currencyName, from, to)
+                .stream()
+                .map(PriceBuilder::buildPrice)
+                .collect(Collectors.toUnmodifiableList());
+        return ResponseEntity.ok(prices);
     }
 }

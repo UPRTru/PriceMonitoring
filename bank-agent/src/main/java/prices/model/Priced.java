@@ -1,18 +1,18 @@
 package prices.model;
 
-import com.precious.shared.enums.Banks;
+import shared.enums.Banks;
 
 import java.math.BigDecimal;
 
 public interface Priced {
 
-    public Banks getBank();
+    Banks getBank();
 
-    public String getName();
+    String getName();
 
-    public BigDecimal getBuyPrice();
+    BigDecimal getBuyPrice();
 
-    public BigDecimal getSellPrice();
+    BigDecimal getSellPrice();
 
-    public Long getTimestamp();
+    Long getTimestamp();
 }

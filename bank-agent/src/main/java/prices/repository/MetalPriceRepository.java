@@ -13,15 +13,15 @@ import java.util.Optional;
 public interface MetalPriceRepository extends JpaRepository<MetalPrice, Long> {
 
     @Query("SELECT p FROM MetalPrice p WHERE p.name = :name ORDER BY p.timestamp DESC")
-    Optional<MetalPrice> findLatestByName(String name);
+    Optional<MetalPrice> findLatestByName(@Param("name") String name);
 
     @Query("SELECT p FROM MetalPrice p " +
-            "WHERE p.name = :metalName " +
+            "WHERE p.name = :name " +
             "AND p.timestamp >= :from " +
             "AND p.timestamp < :to " +
             "ORDER BY p.timestamp ASC")
     List<MetalPrice> findByNameAndTimestampBetweenOrderByTimestampAsc(
-            @Param("metalName") String name,
+            @Param("name") String name,
             @Param("from") Long from,
             @Param("to") Long to);
 

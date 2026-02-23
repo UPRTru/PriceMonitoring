@@ -1,6 +1,6 @@
 package prices.model;
 
-import com.precious.shared.enums.Banks;
+import shared.enums.Banks;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -13,7 +13,7 @@ import java.util.Objects;
         @Index(name = "metal_prices_idx_name", columnList = "name"),
         @Index(name = "metal_prices_idx_timestamp", columnList = "timestamp")
 })
-public class MetalPrice implements Priced {
+public final class MetalPrice implements Priced {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,7 +29,7 @@ public class MetalPrice implements Priced {
     private BigDecimal sellPrice;
 
     @Column(nullable = false)
-    private final Long timestamp = Instant.now().atZone(ZoneId.of("UTC")).toInstant().toEpochMilli();
+    private Long timestamp = Instant.now().atZone(ZoneId.of("UTC")).toInstant().toEpochMilli();
 
     @Column(nullable = false)
     private String bank;
@@ -38,10 +38,18 @@ public class MetalPrice implements Priced {
     }
 
     public MetalPrice(String name, BigDecimal buyPrice, BigDecimal sellPrice, String bank) {
-        this.name = Objects.requireNonNull(name);
-        this.buyPrice = Objects.requireNonNull(buyPrice);
-        this.sellPrice = Objects.requireNonNull(sellPrice);
-        this.bank = bank;
+        this.name = Objects.requireNonNull(name, "Name cannot be null");
+        this.buyPrice = Objects.requireNonNull(buyPrice, "Buy price cannot be null");
+        this.sellPrice = Objects.requireNonNull(sellPrice, "Sell price cannot be null");
+        this.bank = Objects.requireNonNull(bank, "Bank cannot be null");
+    }
+
+    public MetalPrice(String name, BigDecimal buyPrice, BigDecimal sellPrice, String bank, Long timestamp) {
+        this.name = Objects.requireNonNull(name, "Name cannot be null");
+        this.buyPrice = Objects.requireNonNull(buyPrice, "Buy price cannot be null");
+        this.sellPrice = Objects.requireNonNull(sellPrice, "Sell price cannot be null");
+        this.bank = Objects.requireNonNull(bank, "Bank cannot be null");
+        this.timestamp = Objects.requireNonNull(timestamp, "Timestamp cannot be null");
     }
 
     public Long getId() {
@@ -77,17 +85,12 @@ public class MetalPrice implements Priced {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof MetalPrice that)) return false;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(buyPrice, that.buyPrice) &&
-                Objects.equals(sellPrice, that.sellPrice) &&
-                Objects.equals(timestamp, that.timestamp) &&
-                Objects.equals(bank, that.bank);
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, buyPrice, sellPrice, timestamp, bank);
+        return Objects.hash(id);
     }
 
     @Override

@@ -1,12 +1,13 @@
 package prices.agent.sber.metal;
 
-import com.precious.shared.dto.Price;
-import com.precious.shared.enums.Banks;
-import com.precious.shared.enums.CurrentPrice;
-import com.precious.shared.enums.Metal;
+import shared.dto.Price;
+import shared.enums.Banks;
+import shared.enums.CurrentPrice;
+import shared.enums.Metal;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import prices.agent.Agent;
 import prices.agent.AgentConfig;
@@ -14,8 +15,8 @@ import prices.agent.EnumAgentsConfig;
 import prices.agent.WebDriverSupport;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.HashMap;
+import java.util.Map;
 
 @Component(MetalSberAgent.AGENT_NAME)
 public final class MetalSberAgent implements Agent {
@@ -25,38 +26,47 @@ public final class MetalSberAgent implements Agent {
     private final AgentConfig agentConfig;
     private final WebDriverSupport webDriverSupport;
 
-    public MetalSberAgent() {
+    public MetalSberAgent(@Qualifier("webDriverSupport") WebDriverSupport webDriverSupport) {
         this.agentConfig = EnumAgentsConfig.SBER_METAL.getAgentConfig();
-        this.webDriverSupport = new WebDriverSupport();
+        this.webDriverSupport = webDriverSupport;
+    }
+
+
+    @Override
+    public Map<String, Price> getPrices() {
+        webDriverSupport.createDriver();
+        try {
+            webDriverSupport.goToPage(agentConfig.getUrl());
+            return getMetalsPrices();
+        } finally {
+            webDriverSupport.close();
+        }
     }
 
     @Override
-    public HashMap<String, Price> getPrices() {
-        webDriverSupport.createDriver();
-        webDriverSupport.goToPage(agentConfig.getUrl());
-        HashMap<String, Price> result = getMetalsPrices();
-        webDriverSupport.closeDriver();
-        return result;
+    public String getName() {
+        return AGENT_NAME;
     }
 
-    private HashMap<String, Price> getMetalsPrices() {
-        HashMap<String, Price> result = new HashMap<>();
+    private Map<String, Price> getMetalsPrices() {
+        Map<String, Price> result = new HashMap<>(Metal.values().length);
         for (Metal metal : Metal.values()) {
-            Price price = getMetalPrices(metal);
-            result.put(price.name(), price);
+            Price price = getMetalPrice(metal);
+            result.put(metal.name(), price);
         }
         return result;
     }
 
-    private Price getMetalPrices(Metal metal) {
-        return Price.of(Banks.SBER,
+    private Price getMetalPrice(Metal metal) {
+        return Price.createWithCurrentTime(
+                Banks.SBER,
                 metal.getDisplayName(),
-                getJsonMetalPrice(metal, CurrentPrice.BUY),
-                getJsonMetalPrice(metal, CurrentPrice.SELL),
-                Instant.now().toEpochMilli());
+                getMetalPriceValue(metal, CurrentPrice.BUY),
+                getMetalPriceValue(metal, CurrentPrice.SELL)
+        );
     }
 
-    private BigDecimal getJsonMetalPrice(Metal metal, CurrentPrice currentPrice) {
+    private BigDecimal getMetalPriceValue(Metal metal, CurrentPrice currentPrice) {
         WebElement webElement = getWebElement(metal, currentPrice);
         String clean = webElement.getText().replaceAll("[^\\d,\\.]", "").replace(',', '.');
         return new BigDecimal(clean);
@@ -69,7 +79,8 @@ public final class MetalSberAgent implements Agent {
         };
         return webDriverSupport.getWebDriver().until(
                 ExpectedConditions.presenceOfElementLocated(
-                        By.xpath(String.format(agentConfig.getWebElement(), metal.getDisplayName(), index))
+                        By.xpath(String.format(agentConfig.getWebElement(),
+                                metal.getDisplayName(), index))
                 )
         );
     }

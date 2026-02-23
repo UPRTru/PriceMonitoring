@@ -1,20 +1,33 @@
 package prices.builder;
 
-import com.precious.shared.dto.Price;
+import shared.dto.Price;
 import jakarta.validation.constraints.NotNull;
-import prices.model.CurrencyPrice;
-import prices.model.MetalPrice;
 import prices.model.Priced;
 
-import javax.annotation.Nullable;
+import java.util.Objects;
+import java.util.Optional;
 
-public class PriceBuilder {
+public final class PriceBuilder {
+
+    private PriceBuilder() {
+        throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    }
 
     public static Price buildPrice(@NotNull Priced priced) {
-        return Price.of(priced.getBank(),
+        Objects.requireNonNull(priced, "Priced cannot be null");
+        return Price.createWithTimestamp(
+                priced.getBank(),
                 priced.getName(),
                 priced.getBuyPrice(),
                 priced.getSellPrice(),
-                priced.getTimestamp());
+                priced.getTimestamp()
+        );
+    }
+
+    public static Optional<Price> buildPriceSafe(Priced priced) {
+        if (priced == null) {
+            return Optional.empty();
+        }
+        return Optional.of(buildPrice(priced));
     }
 }
