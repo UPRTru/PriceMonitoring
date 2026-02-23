@@ -5,10 +5,6 @@ import com.precious.shared.enums.Banks;
 import com.precious.shared.enums.CurrentPrice;
 import com.precious.shared.enums.TypePrice;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,7 +15,7 @@ import java.util.Objects;
         @Index(name = "idx_scheduled_price_user", columnList = "user_id"),
         @Index(name = "idx_scheduled_price_created", columnList = "createdAt")
 })
-public class ScheduledPrice {
+public final class ScheduledPrice {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,24 +41,19 @@ public class ScheduledPrice {
     private BigDecimal price;
 
     @Column(nullable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    public ScheduledPrice() {
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+    protected ScheduledPrice() {
     }
 
     public ScheduledPrice(User user, String bank, String typePrice, String currentPrice,
                           String name, BigDecimal price) {
-        this.user = user;
-        this.bank = bank;
-        this.typePrice = typePrice;
-        this.currentPrice = currentPrice;
-        this.name = name;
-        this.price = price;
+        this.user = Objects.requireNonNull(user, "User cannot be null");
+        this.bank = Objects.requireNonNull(bank, "Bank cannot be null");
+        this.typePrice = Objects.requireNonNull(typePrice, "TypePrice cannot be null");
+        this.currentPrice = Objects.requireNonNull(currentPrice, "CurrentPrice cannot be null");
+        this.name = Objects.requireNonNull(name, "Name cannot be null");
+        this.price = Objects.requireNonNull(price, "Price cannot be null");
         this.createdAt = LocalDateTime.now();
     }
 
@@ -102,29 +93,34 @@ public class ScheduledPrice {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ScheduledPrice that)) return false;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(user, that.user) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(price, that.price);
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, user, name, price);
+        return Objects.hash(id);
     }
 
     @Override
     public String toString() {
         return "ScheduledPrice{" +
+                "id=" + id +
                 ", bank='" + bank + '\'' +
                 ", typePrice='" + typePrice + '\'' +
                 ", currentPrice='" + currentPrice + '\'' +
                 ", name='" + name + '\'' +
                 ", price=" + price +
+                ", createdAt=" + createdAt +
                 '}';
     }
 
     public CheckPrice getCheckPrice() {
-        return CheckPrice.of(Banks.valueOf(bank), TypePrice.valueOf(typePrice), CurrentPrice.valueOf(currentPrice), name, price);
+        return CheckPrice.of(
+                Banks.valueOf(bank),
+                TypePrice.valueOf(typePrice),
+                CurrentPrice.valueOf(currentPrice),
+                name,
+                price
+        );
     }
 }

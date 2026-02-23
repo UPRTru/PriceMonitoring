@@ -8,13 +8,11 @@ import com.precious.user.model.ScheduledPrice;
 import com.precious.user.model.User;
 import com.precious.user.repository.ScheduledPriceRepository;
 import com.precious.user.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,19 +22,28 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
     private final UserRepository userRepository;
     private final ScheduledPriceRepository scheduledPriceRepository;
     private final PasswordEncoder passwordEncoder;
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}");
+
+    public UserServiceImpl(UserRepository userRepository,
+                           ScheduledPriceRepository scheduledPriceRepository,
+                           PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.scheduledPriceRepository = scheduledPriceRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Retryable(
             value = {DataAccessException.class},
@@ -46,11 +53,17 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public User register(AuthDto authDto, String timezone) {
-        validEmail(authDto.email());
+        Objects.requireNonNull(authDto, "AuthDto cannot be null");
+        Objects.requireNonNull(timezone, "Timezone cannot be null");
+        validateEmail(authDto.email());
         if (userRepository.existsByEmail(authDto.email())) {
             throw new IllegalArgumentException("Пользователь с таким email уже существует");
         }
-        User user = new User(authDto.email(), passwordEncoder.encode(authDto.password()), timezone);
+        User user = new User(
+                authDto.email(),
+                passwordEncoder.encode(authDto.password()),
+                timezone
+        );
         return userRepository.save(user);
     }
 
@@ -62,19 +75,16 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     @Override
     public UserDetails getByEmail(String email) {
-        try {
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new NotFoundException("Пользователь с email: " + email + " не найден."));
-            List<GrantedAuthority> authorities = new ArrayList<>();
-            authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-            return new org.springframework.security.core.userdetails.User(
-                    user.getEmail(),
-                    user.getPassword(),
-                    authorities
-            );
-        } catch (Exception e) {
-            throw new NotFoundException("Пользователь с email: " + email + " не найден.");
-        }
+        Objects.requireNonNull(email, "Email cannot be null");
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("Пользователь с email: " + email + " не найден."));
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        return new org.springframework.security.core.userdetails.User(
+                user.getEmail(),
+                user.getPassword(),
+                authorities
+        );
     }
 
     @Retryable(
@@ -85,6 +95,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     @Override
     public Optional<User> findByEmail(String email) {
+        Objects.requireNonNull(email, "Email cannot be null");
         return userRepository.findByEmail(email);
     }
 
@@ -93,19 +104,21 @@ public class UserServiceImpl implements UserService {
             maxAttempts = 3,
             backoff = @Backoff(delay = 2000)
     )
-    @Transactional(readOnly = true)
+    @Transactional
     @Override
     public void addScheduledPrice(String email, CheckPrice checkPrice) {
+        Objects.requireNonNull(email, "Email cannot be null");
+        Objects.requireNonNull(checkPrice, "CheckPrice cannot be null");
         User user = findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
-
         ScheduledPrice scheduledPrice = new ScheduledPrice(
                 user,
                 checkPrice.bank().name(),
                 checkPrice.typePrice().name(),
                 checkPrice.currentPrice().name(),
                 checkPrice.name(),
-                checkPrice.price());
+                checkPrice.price()
+        );
         scheduledPriceRepository.save(scheduledPrice);
     }
 
@@ -128,6 +141,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     @Override
     public List<ScheduledPrice> getScheduledPrice(String email) {
+        Objects.requireNonNull(email, "Email cannot be null");
         return scheduledPriceRepository.findByUserEmail(email);
     }
 
@@ -137,7 +151,9 @@ public class UserServiceImpl implements UserService {
             backoff = @Backoff(delay = 2000, multiplier = 1.5)
     )
     @Transactional(readOnly = true)
+    @Override
     public StringBuilder getAllScheduledPrices(String email) {
+        Objects.requireNonNull(email, "Email cannot be null");
         User user = findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
         List<ScheduledPrice> scheduledPrices = user.getScheduledPrices();
@@ -156,39 +172,46 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     @Override
     public boolean authenticate(String email, String password) {
+        Objects.requireNonNull(email, "Email cannot be null");
+        Objects.requireNonNull(password, "Password cannot be null");
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
         return passwordEncoder.matches(password, user.getPassword());
     }
 
-    @Transactional()
+    @Transactional
     @Override
     public void deleteScheduledPrice(Long id, String email) {
+        Objects.requireNonNull(id, "ID cannot be null");
+        Objects.requireNonNull(email, "Email cannot be null");
         ScheduledPrice price = scheduledPriceRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Price not found"));
-
+                .orElseThrow(() -> new NotFoundException("Price not found with id: " + id));
         if (!price.getUser().getEmail().equals(email)) {
             throw new SecurityException("Unauthorized access");
         }
         scheduledPriceRepository.delete(price);
     }
 
-    @Transactional()
+    @Transactional
     @Override
     public void deleteUser(String email) {
+        Objects.requireNonNull(email, "Email cannot be null");
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found with email: " + email));
         scheduledPriceRepository.deleteByUser(user);
         userRepository.delete(user);
     }
 
+    @Transactional(readOnly = true)
+    @Override
     public String getUserZoneDateTime(String email) {
+        Objects.requireNonNull(email, "Email cannot be null");
         User user = findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
         return user.getTimezone();
     }
 
-    private void validEmail(String email) {
+    private void validateEmail(String email) {
         if (email == null || email.isBlank()) {
             throw new BadRequestException("Email cannot be empty");
         }

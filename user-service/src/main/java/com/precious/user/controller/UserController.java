@@ -2,6 +2,11 @@ package com.precious.user.controller;
 
 import com.precious.shared.dto.AuthDto;
 import com.precious.shared.dto.CheckPrice;
+import com.precious.shared.enums.Banks;
+import com.precious.shared.enums.CurrentPrice;
+import com.precious.shared.enums.TypePrice;
+import com.precious.shared.exception.BadRequestException;
+import com.precious.shared.exception.NotFoundException;
 import com.precious.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -9,6 +14,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -19,6 +25,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 @Controller
 public final class UserController {
@@ -74,6 +81,10 @@ public final class UserController {
                 model.addAttribute("user", new RegistrationForm("", "", ""));
                 return determineView(all);
             }
+        } catch (NotFoundException e) {
+            model.addAttribute("error", "Пользователь не найден");
+            model.addAttribute("user", new RegistrationForm("", "", ""));
+            return determineView(all);
         } catch (Exception e) {
             model.addAttribute("error", "Ошибка при входе: " + e.getMessage());
             model.addAttribute("user", new RegistrationForm("", "", ""));
@@ -82,7 +93,8 @@ public final class UserController {
     }
 
     @GetMapping("/register")
-    public String showRegistrationForm(Model model, @RequestParam(required = false, defaultValue = "false") Boolean all) {
+    public String showRegistrationForm(Model model,
+                                       @RequestParam(required = false, defaultValue = "false") Boolean all) {
         model.addAttribute("user", new RegistrationForm("", "", ""));
         return determineView(all);
     }
@@ -105,8 +117,12 @@ public final class UserController {
             request.getSession().setAttribute("email", form.email());
             model.addAttribute("message", "Регистрация успешна! Добро пожаловать!");
             return "redirect:/dashboard?all=" + all;
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             model.addAttribute("error", "Ошибка: " + e.getMessage());
+            model.addAttribute("user", form);
+            return determineView(all);
+        } catch (Exception e) {
+            model.addAttribute("error", "Ошибка регистрации: " + e.getMessage());
             model.addAttribute("user", form);
             return determineView(all);
         }
@@ -139,18 +155,24 @@ public final class UserController {
         if (sessionEmail == null || !sessionEmail.equals(request.email())) {
             return "Неавторизованный доступ";
         }
-
         try {
+            Banks bank = Banks.findByName(request.bank())
+                    .orElseThrow(() -> new BadRequestException("Invalid bank: " + request.bank()));
+            TypePrice typePrice = TypePrice.fromValue(request.typePrice())
+                    .orElseThrow(() -> new BadRequestException("Invalid typePrice: " + request.typePrice()));
+            CurrentPrice currentPrice = CurrentPrice.fromValue(request.currentPrice())
+                    .orElseThrow(() -> new BadRequestException("Invalid currentPrice: " + request.currentPrice()));
             CheckPrice checkPrice = CheckPrice.of(
-                    com.precious.shared.enums.Banks.findByName(request.bank()).get(),
-                    com.precious.shared.enums.TypePrice.fromValue(request.typePrice()).get(),
-                    com.precious.shared.enums.CurrentPrice.fromValue(request.currentPrice()).get(),
+                    bank,
+                    typePrice,
+                    currentPrice,
                     request.name(),
                     request.price()
             );
-
             userService.addScheduledPrice(request.email(), checkPrice);
             return "success";
+        } catch (BadRequestException e) {
+            return "Ошибка валидации: " + e.getMessage();
         } catch (Exception e) {
             return "Ошибка: " + e.getMessage();
         }
@@ -163,10 +185,13 @@ public final class UserController {
         if (email == null) {
             return "error: not authenticated";
         }
-
         try {
             userService.deleteScheduledPrice(id, email);
             return "success";
+        } catch (NotFoundException e) {
+            return "error: " + e.getMessage();
+        } catch (SecurityException e) {
+            return "error: unauthorized access";
         } catch (Exception e) {
             return "error: " + e.getMessage();
         }
@@ -179,12 +204,13 @@ public final class UserController {
         if (email == null) {
             return "error: not authenticated";
         }
-
         try {
             userService.deleteUser(email);
             SecurityContextHolder.clearContext();
             session.invalidate();
             return "success";
+        } catch (NotFoundException e) {
+            return "error: " + e.getMessage();
         } catch (Exception e) {
             return "error: " + e.getMessage();
         }
@@ -205,17 +231,23 @@ public final class UserController {
     }
 
     public record RegistrationForm(@NotBlank @Email String email,
-                                   @NotBlank String password,
+                                   @NotBlank @Size(min = 8) String password,
                                    @NotBlank String timezone) {
     }
 
-    public record CheckPriceRequest(
-            String name,
-            String bank,
-            String typePrice,
-            String currentPrice,
-            BigDecimal price,
-            String email
-    ) {
+    public record CheckPriceRequest(String name,
+                                    String bank,
+                                    String typePrice,
+                                    String currentPrice,
+                                    BigDecimal price,
+                                    String email) {
+        public CheckPriceRequest {
+            Objects.requireNonNull(name, "Name cannot be null");
+            Objects.requireNonNull(bank, "Bank cannot be null");
+            Objects.requireNonNull(typePrice, "TypePrice cannot be null");
+            Objects.requireNonNull(currentPrice, "CurrentPrice cannot be null");
+            Objects.requireNonNull(price, "Price cannot be null");
+            Objects.requireNonNull(email, "Email cannot be null");
+        }
     }
 }
