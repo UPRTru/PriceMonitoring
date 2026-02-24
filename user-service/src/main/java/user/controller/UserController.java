@@ -138,7 +138,8 @@ public final class UserController {
         String email = authentication.getName();
         model.addAttribute("email", email);
         model.addAttribute("prices", userService.getScheduledPrice(email));
-        return determineView(all);
+        model.addAttribute("user", new RegistrationForm("", "", ""));
+        return Boolean.TRUE.equals(all) ? "dashboard2" : "dashboard";
     }
 
     @GetMapping("/logout")

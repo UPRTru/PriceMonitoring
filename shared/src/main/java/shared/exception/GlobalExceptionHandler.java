@@ -64,16 +64,6 @@ public final class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(org.springframework.dao.DataAccessException.class)
-    public ResponseEntity<Map<String, Object>> handleDataAccessException(
-            org.springframework.dao.DataAccessException ex, WebRequest request) {
-        return buildErrorResponse(
-                HttpStatus.SERVICE_UNAVAILABLE,
-                "Database unavailable. Please try again later.",
-                request.getDescription(false).replace("uri=", "")
-        );
-    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(
             Exception ex, WebRequest request) {

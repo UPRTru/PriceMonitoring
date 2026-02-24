@@ -13,7 +13,6 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
 
-
     implementation 'org.jsoup:jsoup:1.17.2'
     implementation 'org.seleniumhq.selenium:selenium-java:4.37.0'
     implementation("net.minidev:json-smart:2.6.0")
@@ -27,7 +26,6 @@ dependencies {
 
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
-    implementation 'org.springframework.kafka:spring-kafka'
     implementation project(':shared')
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'
